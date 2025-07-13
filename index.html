@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cycling Comfort Map</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div id="controls">
+  <label>Color by:
+    <select id="colorBy">
+      <option value="rms">RMS</option>
+      <option value="cci">CCI</option>
+    </select>
+  </label>
+  <label>Start Time: <input type="text" id="startTime" /></label>
+  <label>End Time: <input type="text" id="endTime" /></label>
+  <button onclick="loadData()">Load Points</button>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="config.js"></script>     <!-- Load API URLs -->
+<script src="script.js"></script>     <!-- Main logic -->
+</body>
+</html>
