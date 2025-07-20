@@ -16,6 +16,7 @@ body, html {
   background: white;
   padding: 10px;
   border-radius: 8px;
+  max-width: 90vw;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   font-family: Arial, sans-serif;
 }
@@ -44,4 +45,32 @@ label, select, input {
   opacity: 0.8;
   position: relative;
 }
+
+/* For mobile layout */
+@media (max-width: 600px) {
+  #controls {
+    bottom: 10px;
+    left: 10px;
+    max-width: 45vw;
+  }
+
+  .info.legend {
+    bottom: 10px;
+    left: 10px;
+    max-width: 45vw;
+    font-size: 12px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+
+  .info.legend i {
+    float: none;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  
+}
+
 
