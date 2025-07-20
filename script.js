@@ -1,5 +1,11 @@
 const map = L.map('map').setView([48.1374, 11.5755], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+//L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+L.tileLayer('https://api.maptiler.com/maps/basic/{z}/{x}/{y}.png?key=8S0Zpo1HRqDNrMV7HseO', {
+  attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+
+
 
 
 
@@ -130,7 +136,7 @@ if (viewMode === "points") {
       `;
 
       L.circleMarker([pt.lat, pt.lon], {
-        radius: 6,
+        radius: 2,
         color: color,
         fillOpacity: 0.7
       }).addTo(map).bindPopup(popup);
@@ -285,20 +291,21 @@ else if (metric.toLowerCase() === "cci") {
 }
 
 function getColorForRMS(d) {
-  return d >= 0.8   ? "#caf0f8" :  
-         d >= 0.63   ? "#90e0ef" :  
-         d >= 0.5   ? "#00b4d8" :  
-         d >= 0.315  ? "#0077b6" :  
-                      "#03045e";   
+  return d >= 0.8   ? "#d73027" :  
+         d >= 0.63  ? "#fc8d59" :  
+         d >= 0.5   ? "#fee08b" :  
+         d >= 0.315 ? "#4daf4a" :
+                      "#216e39" ;
+}
+ 
+function getColorForCCI(d) {
+  return d === 5 ? "#caf0f8" :  // very comfortable - dark green
+         d === 4 ? "#90e0ef" :  // comfortable - green
+         d === 3 ? "#00b4d8" :  // slightly uncomfortable - yellow
+         d === 2 ? "#0077b6" :  // uncomfortable - orange
+                   "#03045e" ;   // extremely uncomfortable - red
 }
 
-function getColorForCCI(d) {
-  return d === 5 ? "#216e39" :  // very comfortable - dark green
-         d === 4 ? "#4daf4a" :  // comfortable - green
-         d === 3 ? "#fee08b" :  // slightly uncomfortable - yellow
-         d === 2 ? "#fc8d59" :  // uncomfortable - orange
-                   "#d73027";   // extremely uncomfortable - red
-}
 
 document.getElementById("colorBy").addEventListener("change", function () {
   const selected = this.value;

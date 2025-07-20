@@ -33,6 +33,7 @@ label, select, input {
   font-size: 12px;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  position: relative;
 }
 
 .info.legend i {
@@ -41,5 +42,6 @@ label, select, input {
   float: left;
   margin-right: 8px;
   opacity: 0.8;
+  position: relative;
 }
 
