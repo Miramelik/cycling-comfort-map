@@ -30,7 +30,8 @@ fetch('data/streets.geojson')  // fetching open steetmap streets as geojson
     streetSegments.forEach(seg => {
       L.polyline(seg.coords, {
         color: "#999",
-        weight: 2
+        weight: 2, 
+        opacity: 0,
       }).addTo(map);
     });
 
