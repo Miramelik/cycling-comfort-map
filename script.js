@@ -4,6 +4,23 @@ L.tileLayer('https://api.maptiler.com/maps/basic/{z}/{x}/{y}.png?key=8S0Zpo1HRqD
   attribution: '&copy; <a href="https://www.maptiler.com/">MapTiler</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
 }).addTo(map);
 
+const presets = {
+  maxvorstadt: {
+    bounds: [[48.12794, 11.54517], [48.15881, 11.59204]],
+    start: "2025-07-17T20:00:00",
+    end: "2025-07-17T22:00:00"
+  },
+  amhart: {
+    bounds: [[48.18154, 11.55504], [48.21873, 11.59624]],
+    start: "2025-07-14T23:30:00",
+    end: "2025-07-15T01:30:00"
+  },
+  milbertshofen: {
+    bounds: [[48.17570, 11.56328], [48.18909, 11.58817]],
+    start: "2025-07-18T20:00:00",
+    end: "2025-07-18T22:00:00"
+  }
+};
 
 
 
@@ -38,13 +55,25 @@ fetch('data/streets.geojson')  // fetching open steetmap streets as geojson
     streetsLoaded = true;
   });
 
+function localInputToUTCString(input) {
+   // If input already ends with 'Z', treat it as UTC and return directly
+  if (input.endsWith("Z")) return input;
+  // Otherwise, convert local time to UTC
+  const localDate = new Date(input);
+  const tzOffset = localDate.getTimezoneOffset() * 60000;
+  const utcDate = new Date(localDate.getTime() - tzOffset);
+  return utcDate.toISOString();
+}
 
-flatpickr("#startTime", { enableTime: true, dateFormat: "Y-m-d\\TH:i:S\\Z" });
-flatpickr("#endTime", { enableTime: true, dateFormat: "Y-m-d\\TH:i:S\\Z" });
+flatpickr("#startTime", { enableTime: true, dateFormat: "Y-m-d\\TH:i:S" });
+flatpickr("#endTime", { enableTime: true, dateFormat: "Y-m-d\\TH:i:S" });
 
 async function fetchObservations(id, start, end, includeLocation = false) {
-  const startISO = new Date(start).toISOString();
-  const endISO = new Date(end).toISOString();
+  const startISO = localInputToUTCString(start);
+  const endISO = localInputToUTCString(end);
+
+
+
 
   let url = `${CONFIG.baseUrl}/Datastreams(${id})/Observations?` +
             `$filter=during(phenomenonTime,${startISO}/${endISO})` +
@@ -70,21 +99,50 @@ function clearDrawnSegments() {
   drawnSegments = [];
 }
 
+
+let pointMarkers = [];
+
 async function loadData() {
   if (!streetsLoaded) {
   alert("Streets are still loading. Please wait a moment.");
   return;
 }
+
 clearDrawnSegments(); // remove old visualizations
+pointMarkers.forEach(m => map.removeLayer(m));
+pointMarkers = [];
 
-  const start = document.getElementById('startTime').value;
-  const end = document.getElementById('endTime').value;
-  const colorBy = document.getElementById('colorBy').value;
 
-  if (!start || !end) {
-    alert("Please select start and end times.");
-    return;
-  }
+const colorBy = document.getElementById('colorBy').value;
+
+const startInput = document.getElementById('startTime');
+const endInput = document.getElementById('endTime');
+
+const start = startInput.value;
+const end = endInput.value;
+
+console.log("Start input:", start);
+console.log("End input:", end);
+
+const startTime = new Date(start);
+const endTime = new Date(end);
+
+console.log("Parsed StartTime:", startTime, "Valid?", !isNaN(startTime.getTime()));
+console.log("Parsed EndTime:", endTime, "Valid?", !isNaN(endTime.getTime()));
+
+
+// Validate
+if (!start || !end || isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+  alert("Please select both valid start and end times.");
+  return;
+}
+
+  // Ensure start < end
+
+if (startTime >= endTime) {
+  alert("End time must be after start time.");
+  return;
+}
 
   map.eachLayer(layer => {
   if (layer instanceof L.Polyline && !(layer instanceof L.TileLayer)) {
@@ -129,18 +187,25 @@ if (viewMode === "points") {
       const value = colorBy === 'rms' ? pt.rms : pt.cci;
       const color = colorBy === 'rms' ? getColorForRMS(value) : getColorForCCI(value);
 
+      const localTime = new Date(pt.time).toLocaleString('de-DE', {
+      timeZone: 'Europe/Berlin',
+      hour12: false
+    });
+
       const popup = `
-        <b>Time:</b> ${pt.time}<br>
+        <b>Time:</b> ${localTime}<br>
         <b>RMS:</b> ${pt.rms}<br>
         <b>CCI:</b> ${pt.cci}<br>
         <b>Speed:</b> ${pt.speed}
       `;
 
-      L.circleMarker([pt.lat, pt.lon], {
+      const marker = L.circleMarker([pt.lat, pt.lon], {
         radius: 2,
         color: color,
         fillOpacity: 0.7
       }).addTo(map).bindPopup(popup);
+
+      pointMarkers.push(marker);
     }
   });
 }
@@ -176,6 +241,30 @@ streetSegments.forEach(s => s.values = []);
   updateLegend(colorBy);
   
 }
+
+function toInputLocalString(dateStr) {
+  const d = new Date(dateStr);
+  const tzOffset = d.getTimezoneOffset() * 60000;
+  return d.toISOString().slice(0, 16) + 'Z';
+}
+
+
+async function loadPreset(regionKey) {
+  const preset = presets[regionKey];
+  if (!preset) return;
+
+  // ✅ Convert UTC to local time format for input fields
+  document.getElementById("startTime").value = toInputLocalString(preset.start);
+  document.getElementById("endTime").value = toInputLocalString(preset.end);
+
+  // Zoom to area
+  map.fitBounds(preset.bounds);
+
+  loadData(); // Ensure the data is loaded after preset
+}
+
+
+
 
 function findClosestMatch(data, targetTimeISO, maxDeltaSec = 2) {
   const targetTime = new Date(targetTimeISO).getTime();
@@ -238,7 +327,7 @@ function updateLegend(metric) {
     let grades, getColor, label;
 
     if (metric.toLowerCase() === "rms") {
-      grades = [0.0, 0.315, 0.5, 0.63, 0.8];
+      grades = [0.0, 0.315, 0.5, 0.8, 1.25, 2.0];
       getColor = getColorForRMS;
       label = "RMS (m/s²)";
     } else if (metric.toLowerCase() === "cci") {
@@ -259,8 +348,9 @@ function updateLegend(metric) {
     g === 0.0 ? "Comfortable" :
     g === 0.315 ? "A little uncomfortable" :
     g === 0.5 ? "Fairly uncomfortable" :
-    g === 0.63 ? "Uncomfortable" :
-    g === 0.8 ? "Very uncomfortable" :
+    g === 0.8 ? "Uncomfortable" :
+    g === 1.25 ? "Very uncomfortable" :
+    g === 2 ? "Extremely uncomfortable" :
     `${g}+`;
 
   const rangeLabel = to ? `${g}–${to}` : `${g}+`;
@@ -292,8 +382,9 @@ else if (metric.toLowerCase() === "cci") {
 }
 
 function getColorForRMS(d) {
-  return d >= 0.8   ? "#d73027" :  
-         d >= 0.63  ? "#fc8d59" :  
+  return d >= 2.0   ? "#540500ff" :
+         d >= 1.25  ? "#d73027" :  
+         d >= 0.8   ?  "#fc8d59" :  
          d >= 0.5   ? "#fee08b" :  
          d >= 0.315 ? "#4daf4a" :
                       "#216e39" ;
@@ -379,6 +470,16 @@ function pointToSegmentDistance(p, a, b) {
   const dY = py - closestY;
   return Math.sqrt(dX * dX + dY * dY);
 }
+
+window.addEventListener("load", () => {
+  const checkReady = setInterval(() => {
+    if (streetsLoaded) {
+      clearInterval(checkReady);
+      loadPreset("maxvorstadt");
+    }
+  }, 100); // check every 100ms
+});
+
 
 
 
