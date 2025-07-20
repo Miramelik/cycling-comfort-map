@@ -55,12 +55,12 @@ label, select, input[type="text"], input[type="datetime-local"] {
 /* For mobile layout */
 @media (max-width: 600px) {
   #controls {
-    max-width: 46vw;
+    max-width: 40vw;
   }
 
   .info.legend {
     right: 1px;
-    max-width: 50%;
+    max-width: 45vw;
     font-size: 12px;
     overflow-wrap: break-word;
     word-wrap: break-word;
