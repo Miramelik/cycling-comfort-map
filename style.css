@@ -9,8 +9,8 @@ body, html {
 }
 
 #controls {
-   position: absolute;
-  bottom: 10px;
+  position: absolute;
+  bottom: 20px;
   left: 10px;
   z-index: 1000;
   background: white;
@@ -21,12 +21,18 @@ body, html {
   font-family: Arial, sans-serif;
 }
 
-label, select, input {
-  margin: 5px 0;
+label, select, input[type="text"], input[type="datetime-local"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px;
+  font-size: 14px;
   display: block;
-}
+} 
 
 .info.legend {
+  position: absolute;
+  bottom: 10px;
+  right: 5px;
   background: white;
   padding: 10px;
   line-height: 18px;
@@ -34,7 +40,7 @@ label, select, input {
   font-size: 12px;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-  position: relative;
+  max-width: 300px; /* prevents stretching on wide screens */
 }
 
 .info.legend i {
@@ -49,15 +55,12 @@ label, select, input {
 /* For mobile layout */
 @media (max-width: 600px) {
   #controls {
-    bottom: 10px;
-    left: 10px;
-    max-width: 45vw;
+    max-width: 46vw;
   }
 
   .info.legend {
-    bottom: 10px;
-    left: 10px;
-    max-width: 40vw;
+    right: 1px;
+    max-width: 50%;
     font-size: 12px;
     overflow-wrap: break-word;
     word-wrap: break-word;
@@ -68,8 +71,7 @@ label, select, input {
     display: inline-block;
     vertical-align: middle;
     margin-right: 6px;
-  }
-
+  }  
   
 }
 
