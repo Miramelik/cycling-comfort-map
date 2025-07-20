@@ -57,7 +57,7 @@ label, select, input {
   .info.legend {
     bottom: 10px;
     left: 10px;
-    max-width: 45vw;
+    max-width: 40vw;
     font-size: 12px;
     overflow-wrap: break-word;
     word-wrap: break-word;
