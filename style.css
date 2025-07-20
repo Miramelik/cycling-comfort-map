@@ -72,6 +72,13 @@ label, select, input[type="text"], input[type="datetime-local"] {
     vertical-align: middle;
     margin-right: 6px;
   }  
+
+  .emoji-icon {
+  font-size: 18px;
+  line-height: 2;
+  text-align: center;
+}
+
   
 }
 

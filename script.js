@@ -59,10 +59,7 @@ function localInputToUTCString(input) {
    // If input already ends with 'Z', treat it as UTC and return directly
   if (input.endsWith("Z")) return input;
   // Otherwise, convert local time to UTC
-  const localDate = new Date(input);
-  const tzOffset = localDate.getTimezoneOffset() * 60000;
-  const utcDate = new Date(localDate.getTime() - tzOffset);
-  return utcDate.toISOString();
+   return new Date(input).toISOString();
 }
 
 flatpickr("#startTime", { enableTime: true, dateFormat: "Y-m-d\\TH:i:S" });
@@ -130,19 +127,8 @@ const endTime = new Date(end);
 console.log("Parsed StartTime:", startTime, "Valid?", !isNaN(startTime.getTime()));
 console.log("Parsed EndTime:", endTime, "Valid?", !isNaN(endTime.getTime()));
 
+if (!validateTimeRange(start, end)) return;
 
-// Validate
-if (!start || !end || isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
-  alert("Please select both valid start and end times.");
-  return;
-}
-
-  // Ensure start < end
-
-if (startTime >= endTime) {
-  alert("End time must be after start time.");
-  return;
-}
 
   map.eachLayer(layer => {
   if (layer instanceof L.Polyline && !(layer instanceof L.TileLayer)) {
@@ -181,7 +167,6 @@ if (startTime >= endTime) {
   });
   const viewMode = document.getElementById("viewMode").value;
 
-if (viewMode === "points") {
   joined.forEach(pt => {
     if (pt.lat && pt.lon && pt.rms !== undefined && pt.cci !== undefined) {
       const value = colorBy === 'rms' ? pt.rms : pt.cci;
@@ -207,9 +192,7 @@ if (viewMode === "points") {
       pointMarkers.push(marker);
     }
   });
-}
-
-else if (viewMode === "lines") {
+ if (viewMode === "lines") {
  
 streetSegments.forEach(s => s.values = []);
   
@@ -273,6 +256,31 @@ else if (viewMode === "rawlines") {
       
     }
   }
+
+  if (joined.length >= 2) {
+  const start = joined[0];
+  const end = joined[joined.length - 1];
+
+  const startIcon = L.divIcon({
+    className: 'emoji-icon',
+    html: '🚴',
+    iconSize: [30, 30],
+    iconAnchor: [10, 10]
+  });
+
+  const endIcon = L.divIcon({
+    className: 'emoji-icon',
+    html: '🚴',
+    iconSize: [50, 50],
+    iconAnchor: [10, 10]
+  });
+
+  const startMarker = L.marker([start.lat, start.lon], { icon: startIcon }).addTo(map);
+  const endMarker = L.marker([end.lat, end.lon], { icon: endIcon }).addTo(map);
+
+  pointMarkers.push(startMarker, endMarker); // So they're cleared on reload
+}
+
 }
       
 
@@ -288,8 +296,13 @@ else if (viewMode === "rawlines") {
 
 function toInputLocalString(dateStr) {
   const d = new Date(dateStr);
-  const tzOffset = d.getTimezoneOffset() * 60000;
-  return d.toISOString().slice(0, 16) + 'Z';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  const seconds = String(d.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }
 
 
@@ -515,6 +528,7 @@ function pointToSegmentDistance(p, a, b) {
   return Math.sqrt(dX * dX + dY * dY);
 }
 
+
 window.addEventListener("load", () => {
   const checkReady = setInterval(() => {
     if (streetsLoaded) {
@@ -523,6 +537,39 @@ window.addEventListener("load", () => {
     }
   }, 100); // check every 100ms
 });
+
+function validateTimeRange(startInput, endInput) {
+  if (!startInput || !endInput) {
+    alert("Please fill in both start and end time.");
+    return false;
+  }
+
+  const startTime = new Date(startInput);
+  const endTime = new Date(endInput);
+
+  if (isNaN(startTime.getTime()) || isNaN(endTime.getTime())) {
+    alert("Invalid date format. Please use the date/time picker.");
+    return false;
+  }
+
+  if (startTime >= endTime) {
+    alert("End time must be after start time.");
+    return false;
+  }
+
+  return true;
+}
+
+
+document.getElementById("loadBtn").addEventListener("click", () => {
+  const start = document.getElementById("startTime").value;
+  const end = document.getElementById("endTime").value;
+
+  if (validateTimeRange(start, end)) {
+    loadData();
+  }
+});
+
 
 
 
