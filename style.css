@@ -59,6 +59,7 @@ label, select, input[type="text"], input[type="datetime-local"] {
   }
 
   .info.legend {
+    position: absolute;
     right: 1px;
     max-width: 45vw;
     font-size: 12px;
