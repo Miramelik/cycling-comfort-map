@@ -6,19 +6,19 @@ L.tileLayer('https://api.maptiler.com/maps/basic/{z}/{x}/{y}.png?key=8S0Zpo1HRqD
 
 const presets = {
   maxvorstadt: {
-    bounds: [[48.12794, 11.54517], [48.15881, 11.59204]],
-    start: "2025-07-17T20:00:00",
-    end: "2025-07-17T22:00:00"
+    bounds: [[48.13081, 11.55161], [48.15693, 11.58972]],
+    start: "2025-07-17T20:04:00",
+    end: "2025-07-17T21:42:00"
   },
   amhart: {
     bounds: [[48.18154, 11.55504], [48.21873, 11.59624]],
-    start: "2025-07-14T23:30:00",
-    end: "2025-07-15T01:30:00"
+    start: "2025-07-14T23:42:00",
+    end: "2025-07-15T01:15:00"
   },
   milbertshofen: {
     bounds: [[48.17570, 11.56328], [48.18909, 11.58817]],
-    start: "2025-07-18T20:00:00",
-    end: "2025-07-18T22:00:00"
+    start: "2025-07-18T20:34:00",
+    end: "2025-07-18T21:45:00"
   }
 };
 
@@ -195,7 +195,6 @@ if (viewMode === "points") {
       const popup = `
         <b>Time:</b> ${localTime}<br>
         <b>RMS:</b> ${pt.rms}<br>
-        <b>CCI:</b> ${pt.cci}<br>
         <b>Speed:</b> ${pt.speed}
       `;
 
@@ -228,19 +227,64 @@ streetSegments.forEach(s => s.values = []);
       const avg = seg.values.reduce((a, b) => a + b) / seg.values.length;
       const color = colorBy === 'rms' ? getColorForRMS(avg) : getColorForCCI(avg);
   
+      const popup = `
+        <b> ${colorBy.toUpperCase()}</b>: ${avg.toFixed(2)}<br>
+        
+      `;
+      
       const poly = L.polyline(seg.coords, {
         color: color,
         weight: 5,
-        opacity: 0.9
-      }).addTo(map);
-      drawnSegments.push(poly);
-    }
-  });     
+        opacity: 0.9,
+        interactive: true
+      }).addTo(map).bindPopup(popup);
+      drawnSegments.push(poly);       
   
   }
-  updateLegend(colorBy);
-  
+  });
 }
+
+else if (viewMode === "rawlines") {
+  // Draw direct point-to-point segments
+  for (let i = 1; i < joined.length; i++) {
+    const prev = joined[i - 1];
+    const curr = joined[i];
+    
+    if (
+      prev.lat && prev.lon && curr.lat && curr.lon &&
+      curr[colorBy] !== undefined
+    ) {
+      const color = colorBy === 'rms' ? getColorForRMS(curr[colorBy]) : getColorForCCI(curr[colorBy]);
+
+           
+      const popup = `
+        <b>RMS:</b> ${curr.rms}<br>
+      `;
+
+
+      const line = L.polyline([[prev.lat, prev.lon], [curr.lat, curr.lon]], {
+        color: color,
+        weight: 4,
+        opacity: 0.9
+      }).addTo(map).bindPopup(popup);
+
+      drawnSegments.push(line);
+
+      
+    }
+  }
+}
+      
+
+
+
+  updateLegend(colorBy);
+}
+
+
+
+  
+
 
 function toInputLocalString(dateStr) {
   const d = new Date(dateStr);
@@ -382,10 +426,10 @@ else if (metric.toLowerCase() === "cci") {
 }
 
 function getColorForRMS(d) {
-  return d >= 2.0   ? "#540500ff" :
-         d >= 1.25  ? "#d73027" :  
-         d >= 0.8   ?  "#fc8d59" :  
-         d >= 0.5   ? "#fee08b" :  
+  return d >= 2.0   ? "#3c0501ff" :
+         d >= 1.25  ? "#db1e14ff" :  
+         d >= 0.8   ?  "#e6733dff" :  
+         d >= 0.5   ? "#f9bc12ff" :  
          d >= 0.315 ? "#4daf4a" :
                       "#216e39" ;
 }
